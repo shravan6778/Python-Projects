@@ -1,4 +1,5 @@
-class StarShip:
+from abc import ABC, abstractmethod
+class StarShip(ABC):
     fleet_size = 0
     
     def __init__(self, name, fuel, health, crew_count):
@@ -64,6 +65,10 @@ class StarShip:
         self.health= self.__health - amount
     def repair(self,amount):
         self.health = self.__health + amount
+        
+    @abstractmethod
+    def perform_maintenance(self):
+        pass
 
 # INHERITANCE - FighterShip inherits from StarShip
 class FighterShip(StarShip):
@@ -79,6 +84,9 @@ class FighterShip(StarShip):
         print(f"{self.name} fires weapons at {target.name}!")
         print(f"Weapon power: {self.weapon_power}")
         target.take_damage(self.weapon_power)
+    def perform_maintenance(self):
+        print(f"{self.name} can Calibrate weapons")
+        
 
 class CargoHauler(StarShip):
     def __init__(self,name,fuel,health,crew_count,cargo_capacity,current_cargo):
@@ -107,6 +115,8 @@ class CargoHauler(StarShip):
             self.current_cargo=0
         else:
             self.current_cargo=capacity
+    def perform_maintenance(self):
+        print(f"{self.name} can Inspect cargo holds")
 
 class ScienceVessel(StarShip):
     def __init__(self,name,fuel,health,crew_count,lab_level):
@@ -114,6 +124,9 @@ class ScienceVessel(StarShip):
         self.lab_level=lab_level
     def scan_planet(self,planet_name):
         print(f"The StarShip Lab {self.name} has lab level : {self.lab_level} and has printed {planet_name}")
+        
+    def perform_maintenance(self):
+        print(f"{self.name} can Calibrate lab instruments")
         
 apollo = StarShip("Apollo", fuel=50, health=100,crew_count=10)
 enterprise = StarShip("Enterprise", fuel=80, health=95,crew_count=8)
