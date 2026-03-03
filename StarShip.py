@@ -25,7 +25,6 @@ class StarShip(ABC):
             self.__fuel = value
             print(f"Fuel set to {self.__fuel}")
             
-    
     def add_crew(self,amount):
         self.crew_count+=amount
         
@@ -69,6 +68,14 @@ class StarShip(ABC):
     @abstractmethod
     def perform_maintenance(self):
         pass
+    #POLYMORPHIC METHOD - Every ship moves, but HOW they move is different
+    @abstractmethod
+    def move(self,distance):
+        pass
+    
+    @abstractmethod
+    def emergency_protocol(self):
+        pass
 
 # INHERITANCE - FighterShip inherits from StarShip
 class FighterShip(StarShip):
@@ -78,6 +85,7 @@ class FighterShip(StarShip):
         super().__init__(name, fuel, health, crew_count)
         # Add fighter-specific attribute
         self.weapon_power = weapon_power
+        self.speed = 100  # Fast!
     
     # Fighter-specific method
     def fire_weapons(self, target):
@@ -87,12 +95,22 @@ class FighterShip(StarShip):
     def perform_maintenance(self):
         print(f"{self.name} can Calibrate weapons")
         
+    # Fighter's version of move - FAST and AGILE
+    def move(self, distance):
+        fuel_used = distance * 0.5  # Fighters are fuel-efficient
+        self.fuel = self.fuel - fuel_used
+        print(f"{self.name} zips {distance} km at {self.speed} km/h (fuel:-{fuel_used})")
+        
+    def emergency_protocol(self):
+        print("Activating combat shields and evasive maneuvers!")
 
 class CargoHauler(StarShip):
     def __init__(self,name,fuel,health,crew_count,cargo_capacity,current_cargo):
         super().__init__(name,fuel,health,crew_count)
         self.cargo_capacity=cargo_capacity
         self.current_cargo=current_cargo
+        self.speed = 30  # Slow!
+        
     def load_cargo(self,amount):
         capacity=self.current_cargo+amount
         if amount<0:
@@ -117,64 +135,83 @@ class CargoHauler(StarShip):
             self.current_cargo=capacity
     def perform_maintenance(self):
         print(f"{self.name} can Inspect cargo holds")
+    # Cargo's version of move - SLOW and HEAVY
+    def move(self, distance):
+        fuel_used = distance * 2.0  # Cargo ships guzzle fuel
+        self.fuel = self.fuel - fuel_used
+        print(f"🐢 {self.name} lumbers {distance} km at {self.speed} km/h (fuel: -{fuel_used})")
+
+    def emergency_protocol(self):
+        print("Jettisoning cargo and sealing hull breaches!")
 
 class ScienceVessel(StarShip):
     def __init__(self,name,fuel,health,crew_count,lab_level):
         super().__init__(name,fuel,health,crew_count)
         self.lab_level=lab_level
+        self.speed = 60  # Medium
+        
     def scan_planet(self,planet_name):
         print(f"The StarShip Lab {self.name} has lab level : {self.lab_level} and has printed {planet_name}")
         
     def perform_maintenance(self):
         print(f"{self.name} can Calibrate lab instruments")
         
-apollo = StarShip("Apollo", fuel=50, health=100,crew_count=10)
-enterprise = StarShip("Enterprise", fuel=80, health=95,crew_count=8)
-print(apollo.status_report())
-print(enterprise.status_report())
-print(f"Total fleet size: {StarShip.fleet_size}")
-# Both ships can access the SAME fleet_size
-print(apollo.fleet_size)      
-print(enterprise.fleet_size)  
-print(StarShip.fleet_size)    
-apollo.add_crew(2)
-apollo.refuel(50)
-print(apollo.status_report())
-# How do we check fuel without calling status_report()?
-print(f"Apollo's fuel: {apollo.fuel}")  # What do we write here?
+    # Science's version of move - STEADY
+    def move(self, distance):
+        fuel_used = distance * 1.0
+        self.fuel = self.fuel - fuel_used
+        print(f"🔬 {self.name} cruises {distance} km at {self.speed} km/h (fuel: -{fuel_used})")
+        
+    def emergency_protocol(self):
+        print("Evacuating labs and securing research data!")
+        
+# apollo = StarShip("Apollo", fuel=50, health=100,crew_count=10)
+# enterprise = StarShip("Enterprise", fuel=80, health=95,crew_count=8)
+# print(apollo.status_report())
+# print(enterprise.status_report())
+# print(f"Total fleet size: {StarShip.fleet_size}")
+# # Both ships can access the SAME fleet_size
+# print(apollo.fleet_size)      
+# print(enterprise.fleet_size)  
+# print(StarShip.fleet_size)    
+# apollo.add_crew(2)
+# apollo.refuel(50)
+# print(apollo.status_report())
+# # How do we check fuel without calling status_report()?
+# print(f"Apollo's fuel: {apollo.fuel}")  # What do we write here?
 
-print("\n=== Testing damage and repair ===")
-apollo.take_damage(20)
-print(apollo.status_report())
-apollo.repair(10)
-print(apollo.status_report())
+# print("\n=== Testing damage and repair ===")
+# apollo.take_damage(20)
+# print(apollo.status_report())
+# apollo.repair(10)
+# print(apollo.status_report())
 
-print("\n=== THE BUG - Watch this! ===")
-apollo.take_damage(200)  # Taking 200 damage!
-print(apollo.status_report())  # Health is now NEGATIVE!
+# print("\n=== THE BUG - Watch this! ===")
+# apollo.take_damage(200)  # Taking 200 damage!
+# print(apollo.status_report())  # Health is now NEGATIVE!
 
-print("\n=== Another problem ===")
-apollo.repair(500)  # Repairing 500 health!
-print(apollo.status_report())  # Health is now WAY over 100!
+# print("\n=== Another problem ===")
+# apollo.repair(500)  # Repairing 500 health!
+# print(apollo.status_report())  # Health is now WAY over 100!
 
-# Create ships
-print("=== Creating Ships ===")
-generic_ship = StarShip("USS Generic", fuel=80, health=100, crew_count=50)
-viper = FighterShip("Viper", fuel=100, health=90, crew_count=2, weapon_power=25)
+# # Create ships
+# print("=== Creating Ships ===")
+# generic_ship = StarShip("USS Generic", fuel=80, health=100, crew_count=50)
+# viper = FighterShip("Viper", fuel=100, health=90, crew_count=2, weapon_power=25)
 
-print(generic_ship.status_report())
-print(viper.status_report())
+# print(generic_ship.status_report())
+# print(viper.status_report())
 
-print("\n=== Fighter Attacking Generic Ship ===")
-viper.fire_weapons(generic_ship)
-print(generic_ship.status_report())
+# print("\n=== Fighter Attacking Generic Ship ===")
+# viper.fire_weapons(generic_ship)
+# print(generic_ship.status_report())
 
-print("\n=== Can a generic ship fire weapons? ===")
-try:
-    generic_ship.fire_weapons(viper)
-except AttributeError as e:
-    print(f"Error: {e}")
-    print("Generic StarShip doesn't have fire_weapons() method!")
+# print("\n=== Can a generic ship fire weapons? ===")
+# try:
+#     generic_ship.fire_weapons(viper)
+# except AttributeError as e:
+#     print(f"Error: {e}")
+#     print("Generic StarShip doesn't have fire_weapons() method!")
 
 #Testing all three ship types
 print("=== Creating Fleet ===")
@@ -205,3 +242,24 @@ print(f"After trying to unload 50: {cargo.current_cargo}/{cargo.cargo_capacity}"
 print("\n=== Science Mission ===")
 science.scan_planet("Mars")
 science.scan_planet("Jupiter")
+
+# THE MAGIC OF POLYMORPHISM
+def fleet_movement(ships, distance):
+    """This function works with ANY ship type!"""
+    print(f"=== Moving fleet {distance} km ===")
+    for ship in ships:
+        ship.move(distance)  # Same method name, different behavior!
+
+def fleet_emergency(ships):
+    for ship in ships:
+        ship.emergency_protocol()
+      
+fleet = [fighter, cargo, science]
+
+# This ONE function works with ALL ship types
+fleet_movement(fleet, 50)
+
+print("\n=== Moving again ===")
+fleet_movement(fleet, 100)
+
+fleet_emergency(fleet)
