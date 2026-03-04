@@ -165,6 +165,101 @@ class ScienceVessel(StarShip):
     def emergency_protocol(self):
         print("Evacuating labs and securing research data!")
         
+# MIXIN CLASS - adds cloaking ability
+class CloakingDevice:
+    """A mixin that adds stealth capabilities to any ship"""
+    
+    def __init__(self, *args, **kwargs):
+        # CRITICAL: Must call super() to continue the chain!
+        super().__init__(*args, **kwargs)
+        self.cloaked = False
+        print(f"CloakingDevice.__init__ called")
+    
+    def engage_cloak(self):
+        self.cloaked = True
+        print(f"🌫️ {self.name} vanishes into the void... [CLOAKED]")
+    
+    def disengage_cloak(self):
+        self.cloaked = False
+        print(f"✨ {self.name} decloaks and becomes visible!")
+    
+    def status(self):
+        return "CLOAKED" if self.cloaked else "VISIBLE"
+
+
+# MULTIPLE INHERITANCE - inherits from BOTH FighterShip AND CloakingDevice
+class StealthBomber(FighterShip, CloakingDevice):
+    """A fighter with cloaking technology - inherits from TWO classes!"""
+    
+    def __init__(self, name, fuel, health, crew_count, weapon_power):
+        print(f"\nCreating StealthBomber '{name}':")
+        # super() will call BOTH parent __init__ methods in the right order!
+        super().__init__(name, fuel, health, crew_count, weapon_power)
+        print(f"   StealthBomber.__init__ completed\n")
+    
+    def perform_maintenance(self):
+        print(f"🔧 {self.name}: Calibrating weapons AND cloaking device")
+    
+    def stealth_attack(self, target):
+        """Special ability - only StealthBomber has this!"""
+        if self.cloaked:
+            print(f"🥷 {self.name} strikes from the shadows!")
+            self.fire_weapons(target)
+            self.disengage_cloak()
+        else:
+            print(f"⚠️  Cannot stealth attack - not cloaked!")
+
+# MIXIN CLASS - adds shield protection
+class ShieldGenerator:
+    """A mixin that adds energy shields to any ship"""
+    
+    def __init__(self, *args, **kwargs):
+        # CRITICAL: Must call super() to continue the chain!
+        super().__init__(*args, **kwargs)
+        self.shield_strength = 0
+        print(f"ShieldGenerator.__init__ called")
+    
+    def activate_shields(self):
+        self.shield_strength = 100
+        print(f"🛡️ {self.name} shields activated! [SHIELDS: 100]")
+    
+    def take_hit(self, damage):
+        """Shields absorb damage before health is affected"""
+        if self.shield_strength > 0:
+            if damage <= self.shield_strength:
+                # Shields absorb all damage
+                self.shield_strength -= damage
+                print(f"🛡️ Shields absorbed {damage} damage! [SHIELDS: {self.shield_strength}]")
+            else:
+                # Shields absorb partial damage, rest goes to health
+                remaining_damage = damage - self.shield_strength
+                print(f"🛡️ Shields absorbed {self.shield_strength} damage and collapsed!")
+                self.shield_strength = 0
+                self.take_damage(remaining_damage)
+                print(f"💥 {remaining_damage} damage penetrated to hull!")
+        else:
+            # No shields, all damage to health
+            print(f"⚠️ No shields active! Taking full damage...")
+            self.take_damage(damage)
+
+# MULTIPLE INHERITANCE - inherits from BOTH CargoHauler AND ShieldGenerator
+class ShieldedCargoHauler(CargoHauler, ShieldGenerator):
+    """A cargo hauler with shield technology - inherits from TWO classes!"""
+    
+    def __init__(self, name, fuel, health, crew_count, cargo_capacity, current_cargo):
+        print(f"\nCreating ShieldedCargoHauler '{name}':")
+        # super() will call BOTH parent __init__ methods in the right order!
+        super().__init__(name, fuel, health, crew_count, cargo_capacity, current_cargo)
+        print(f"   ShieldedCargoHauler.__init__ completed\n")
+    
+    def status_report(self):
+        """Override to include shield status"""
+        base_status = super().status_report()
+        return f"{base_status} | Shields: {self.shield_strength}"
+    
+    def perform_maintenance(self):
+        print(f"🔧 {self.name}: Inspecting cargo holds AND calibrating shield generators")
+
 # apollo = StarShip("Apollo", fuel=50, health=100,crew_count=10)
 # enterprise = StarShip("Enterprise", fuel=80, health=95,crew_count=8)
 # print(apollo.status_report())
@@ -263,3 +358,87 @@ print("\n=== Moving again ===")
 fleet_movement(fleet, 100)
 
 fleet_emergency(fleet)
+# Testing Multiple Inheritance
+print("=" * 60)
+print("CREATING SHIPS")
+print("=" * 60)
+
+regular_fighter = FighterShip("Viper", 100, 90, 2, 25)
+stealth_bomber = StealthBomber("Shadow", 100, 95, 3, 30)
+print("\n" + "=" * 60)
+print("METHOD RESOLUTION ORDER (MRO)")
+print("=" * 60)
+print("StealthBomber MRO:")
+for cls in StealthBomber.__mro__:
+    print(f"  → {cls.__name__}")
+
+print("\n" + "=" * 60)
+print("TESTING ABILITIES")
+print("=" * 60)
+
+print("\n--- Regular Fighter (no cloaking) ---")
+regular_fighter.perform_maintenance()
+regular_fighter.move(50)
+# regular_fighter.engage_cloak()  # This would error - no cloaking!
+
+print("\n--- Stealth Bomber (has BOTH fighter AND cloaking abilities) ---")
+stealth_bomber.perform_maintenance()
+stealth_bomber.move(50)
+stealth_bomber.engage_cloak()
+print(f"Status: {stealth_bomber.status()}")
+
+print("\n--- Combat Scenario ---")
+dummy_target = FighterShip("Target", 100, 100, 2, 10)
+stealth_bomber.stealth_attack(dummy_target)
+
+print("\n--- Checking what StealthBomber inherited ---")
+print(f"Has fire_weapons? {hasattr(stealth_bomber, 'fire_weapons')}")
+print(f"Has engage_cloak? {hasattr(stealth_bomber, 'engage_cloak')}")
+print(f"Has weapon_power? {hasattr(stealth_bomber, 'weapon_power')}")
+print(f"Has cloaked attribute? {hasattr(stealth_bomber, 'cloaked')}")
+
+print("\n" + "=" * 60)
+print("TESTING SHIELDED CARGO HAULER")
+print("=" * 60)
+
+print("\n--- Creating ShieldedCargoHauler ---")
+armored_hauler = ShieldedCargoHauler("Fortress", fuel=80, health=100, crew_count=25, cargo_capacity=80, current_cargo=0)
+
+print("\n--- Method Resolution Order (MRO) ---")
+print("ShieldedCargoHauler MRO:")
+for cls in ShieldedCargoHauler.__mro__:
+    print(f"  → {cls.__name__}")
+
+print("\n--- Initial Status ---")
+print(armored_hauler.status_report())
+
+print("\n--- Testing Cargo Abilities (from CargoHauler) ---")
+armored_hauler.load_cargo(50)
+print(armored_hauler.status_report())
+
+print("\n--- Testing Shield Abilities (from ShieldGenerator) ---")
+armored_hauler.activate_shields()
+print(armored_hauler.status_report())
+
+print("\n--- Combat Test: Taking damage WITH shields ---")
+armored_hauler.take_hit(30)  # Shields should absorb this
+print(armored_hauler.status_report())
+
+armored_hauler.take_hit(50)  # Shields should absorb some, health takes rest
+print(armored_hauler.status_report())
+
+armored_hauler.take_hit(30)  # No shields left, all damage to health
+print(armored_hauler.status_report())
+
+print("\n--- Reactivating shields ---")
+armored_hauler.activate_shields()
+print(armored_hauler.status_report())
+
+print("\n--- Testing Maintenance ---")
+armored_hauler.perform_maintenance()
+
+print("\n--- Checking inherited abilities ---")
+print(f"Has load_cargo? {hasattr(armored_hauler, 'load_cargo')}")
+print(f"Has activate_shields? {hasattr(armored_hauler, 'activate_shields')}")
+print(f"Has cargo_capacity? {hasattr(armored_hauler, 'cargo_capacity')}")
+print(f"Has shield_strength? {hasattr(armored_hauler, 'shield_strength')}")
